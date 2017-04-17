@@ -125,8 +125,14 @@ def keyboard_key(view, time, modifiers, key, state):
 
     return 0
 
-def pointer_button(view):
-    print('pointer_button')
+def pointer_button(view, time, modifiers, button, state, position):
+    print('pointer_button', view, time, modifiers, button, state, position)
+
+    if state == lib.WLC_BUTTON_STATE_PRESSED:
+        wlc.view_focus(view)
+
+    return 0
+
 
 def pointer_motion(handle, time, position):
     # print('pointer_motion', handle, timee, position)
