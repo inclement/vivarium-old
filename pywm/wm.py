@@ -8,6 +8,12 @@ def output_resolution(output, from_size, to_size):
 def view_created(view):
     print('view_created')
 
+    wlc.view_set_mask(view, wlc.output_get_mask(wlc.view_get_output(view)))
+    wlc.view_bring_to_front(view)
+    wlc.view_focus(view)
+
+    return 1
+
 def view_destroyed(view):
     print('view_destroyed')
 
@@ -29,6 +35,11 @@ def keyboard_key(view, time, modifiers, key, state):
         if sym == wlc.keysym('Escape'):
             if state:
                 wlc.terminate()
+            return 1
+
+        if sym == wlc.keysym('Return'):
+            if state:
+                wlc.exec('weston-terminal')
             return 1
 
     return 0
