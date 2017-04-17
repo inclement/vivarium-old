@@ -101,6 +101,10 @@ def view_request_move(view):
 def view_request_resize(view):
     print('view_request_resize')
 
+def view_request_geometry(view, geometry):
+    print('view_request_geometry')
+    pass
+
 def keyboard_key(view, time, modifiers, key, state):
     print('keyboard_key', view, time, modifiers, key, state)
 
@@ -148,6 +152,7 @@ def init_callbacks():
     wlc.set_view_focus_cb(view_focus)
     wlc.set_view_request_move_cb(view_request_move)
     wlc.set_view_request_resize_cb(view_request_resize)
+    wlc.set_view_request_geometry_cb(view_request_geometry)
     wlc.set_keyboard_key_cb(keyboard_key)
     wlc.set_pointer_button_cb(pointer_button)
     wlc.set_pointer_motion_cb(pointer_motion)
