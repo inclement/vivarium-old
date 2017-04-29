@@ -2,11 +2,9 @@ from __future__ import division, print_function
 from pywlc import ffi, lib
 from pywlc import wlc
 
-from pywm.objects import State
+from pywm.objects import state
 
 import random
-
-state = State()
 
 def get_topmost(output, offset):
     views, num_views = wlc.output_get_views(output)
@@ -117,8 +115,10 @@ def view_request_geometry(view, geometry):
     print('view_request_geometry')
     pass
 
-def keyboard_key(view, time, modifiers, key, state):
+def keyboard_key(view, time, modifiers, key, key_state):
     print('keyboard_key', view, time, modifiers, key, state)
+
+    return state.keyboard_key(view, time, modifiers, key, key_state)
 
     sym = wlc.keyboard_get_keysym_for_key(key)
 
@@ -152,6 +152,8 @@ def pointer_button(view, time, modifiers, button, state, position):
 
 def pointer_motion(handle, time, position):
     # print('pointer_motion', handle, timee, position)
+
+    state.pointer_motion(handle, time, position)
 
     wlc.pointer_set_position(position)
 

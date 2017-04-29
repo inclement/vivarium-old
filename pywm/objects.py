@@ -1,5 +1,11 @@
 from pywlc import wlc
 
+views = {}
+def get_view(index):
+    if index not in views:
+        views[index] = View(index)
+    return views[index]
+
 class Layout(object):
 
     def __init__(self):
@@ -18,29 +24,36 @@ class Layout(object):
 
         self.do_layout()
 
-    def remove_window(self, index):
-        if not any(w.index == index for w in self.windows):
+    def remove_window(self, view):
+        if view not in self.windows:
             return
 
-        for i, window in enumerate(self.tiled_windows):
-            if window.index == index:
-                self.tiled_windows.pop(i)
+        if view in self.tiled_windows:
+            index = self.tiled_windows.index(view)
+            self.tiled_windows.pop(index)
+            if self.tiled_windows:
+                self.tiled_windows[max(index - 1, 0)].focus()
 
-                if self.tiled_windows:
-                    self.tiled_windows[max(i - 1, 0)].focus()
+        if view in self.floating_windows:
+            index = self.floating_windows.index(view)
+            self.floating_windows.pop(index)
+            if self.floating_windows:
+                self.floating_windows[max(index - 1, 0)].focus()
 
-        for i, window in enumerate(self.floating_windows):
-            if window.index == index:
-                self.floating_windows.pop(i)
-
-                if self.floating_windows:
-                    self.floating_windows[max(i - 1, 0)].focus()
         
         self.do_layout()
 
     def do_layout(self):
         pass
         
+    def pointer_motion(self, handle, time, position):
+        for window in self.tiled_windows[::-1]:
+            pos = window.pos
+            size = window.size
+            if pos[0] < position.x < pos[0] + size[0]:
+                if pos[1] < position.y < pos[1] + size[1]:
+                    window.focus()
+                    return True
 
 
 class TwoColumnLayout(Layout):
@@ -149,20 +162,58 @@ class View(object):
     def pos(self, value):
         self.set(pos=value)
 
+def spawn(program):
+    wlc.exec(program)
+
+keyboard_shortcuts = [('ctrl', 'Escape', 'quit'),
+                      ('ctrl', 'Return', lambda: spawn('weston-terminal')),
+                      ]
 
 class State(object):
     layouts = [TwoColumnLayout()]
+
+    keyboard_shortcuts = keyboard_shortcuts
 
     def __init__(self):
         self.current_layout = self.layouts[0]
 
 
     def add_window(self, view):
-        view = View(view)
+        view = get_view(view)
 
         self.current_layout.add_window(view)
 
     def destroy_view(self, view):
+        view = get_view(view)
         for layout in self.layouts:
             layout.remove_window(view)
-                    
+
+    def pointer_motion(self, handle, time, position):
+        for layout in self.layouts:
+            if layout.pointer_motion(handle, time, position):
+                return
+
+    def keyboard_key(self, view, time, modifiers, key, key_state):
+        sym = wlc.keyboard_get_keysym_for_key(key)
+
+        if not key_state:
+            return 0
+
+        for shortcut in keyboard_shortcuts:
+            modifier, key, func = shortcut
+            if modifiers.modifiers == [modifier]:
+                if sym == wlc.keysym(key):
+                    if isinstance(func, str):
+                        return getattr(self, func)()
+                    else:
+                        return func()
+
+        return 0
+
+                
+
+    def quit(self):
+        wlc.terminate()
+        
+
+state = State()
