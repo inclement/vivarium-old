@@ -78,7 +78,7 @@ def do_layout(output):
 
 def output_resolution(output, from_size, to_size):
     print('output resolution', output, from_size, to_size)
-    do_layout(output)
+    state.current_layout.do_layout()
     
 def view_created(view):
     print('view_created', view)
@@ -98,8 +98,10 @@ def view_created(view):
 def view_destroyed(view):
     print('view_destroyed')
 
-    wlc.view_focus(get_topmost(wlc.view_get_output(view), 0))
-    do_layout(wlc.view_get_output(view))
+    # wlc.view_focus(get_topmost(wlc.view_get_output(view), 0))
+    state.destroy_view(view)
+    state.current_layout.do_layout()
+    # do_layout(wlc.view_get_output(view))
 
 def view_focus(view, focus):
     print('view_focus')
