@@ -1,7 +1,12 @@
 from __future__ import division, print_function
 from pywlc import ffi, lib
 from pywlc import wlc
-# from pywm.callbacks import lib, ffi
+
+from pywm.objects import State
+
+import random
+
+state = State()
 
 def get_topmost(output, offset):
     views, num_views = wlc.output_get_views(output)
@@ -10,6 +15,7 @@ def get_topmost(output, offset):
     return 0
 
 def do_layout(output):
+    print('output is', output)
     size = wlc.output_get_virtual_resolution(output)
     print('size is', size)
     
@@ -77,11 +83,15 @@ def output_resolution(output, from_size, to_size):
 def view_created(view):
     print('view_created', view)
 
-    wlc.view_set_mask(view, wlc.output_get_mask(wlc.view_get_output(view)))
-    wlc.view_bring_to_front(view)
-    wlc.view_focus(view)
+    global state
+    print('state is', state)
+    state.add_window(view)
 
-    do_layout(wlc.view_get_output(view))
+    # wlc.view_set_mask(view, wlc.output_get_mask(wlc.view_get_output(view)))
+    # wlc.view_bring_to_front(view)
+    # wlc.view_focus(view)
+
+    # do_layout(wlc.view_get_output(view))
 
     return 1
 
@@ -95,10 +105,10 @@ def view_focus(view, focus):
     print('view_focus')
     wlc.view_set_state(view, lib.WLC_BIT_ACTIVATED, focus)
 
-def view_request_move(view):
+def view_request_move(view, origin):
     print('view_request_move')
 
-def view_request_resize(view):
+def view_request_resize(view, origin):
     print('view_request_resize')
 
 def view_request_geometry(view, geometry):
@@ -157,11 +167,18 @@ def init_callbacks():
     wlc.set_pointer_button_cb(pointer_button)
     wlc.set_pointer_motion_cb(pointer_motion)
 
-def run():
-    init_callbacks()
-
+def init_wlc():
     lib.wlc_init()
     lib.wlc_run()
+
+def run():
+    init_callbacks()
+    init_wlc()
+
+    global state
+    state = State()
+    
+    assert state is not None
 
 
 if __name__ == "__main__":
