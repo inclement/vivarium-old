@@ -1,4 +1,5 @@
 from pywlc import wlc
+from pywm.logger import info, debug, warning
 
 views = {}
 def get_view(index):
@@ -11,6 +12,8 @@ class Layout(object):
     def __init__(self):
         self.tiled_windows = []
         self.floating_windows = []
+
+        self.border = 2
 
     @property
     def windows(self):
@@ -64,7 +67,12 @@ class TwoColumnLayout(Layout):
 
     def do_layout(self):
 
+        debug('TwoColumnLayout do_layout called')
+
         width_frac = self.separator_frac if len(self.tiled_windows) > 1 else 1
+
+        if not self.tiled_windows:
+            return
 
         window = self.tiled_windows[0]
         output_size = window.output.virtual_resolution
@@ -79,9 +87,9 @@ class TwoColumnLayout(Layout):
         height = output_size[1] / (len(self.tiled_windows) - 1)
         width = (1 - width_frac) * output_size[0]
         for i, window in enumerate(self.tiled_windows[1:]):
-            window.size = (int(width), int(height))
-            window.pos = (int(output_size[0] * width_frac),
-                          int(output_size[1] - height * (1 + i)))
+            window.size = (int(width - 2*self.border), int(height - 2*self.border))
+            window.pos = (int(output_size[0] * width_frac + self.border),
+                          int(output_size[1] - height * (1 + i) + self.border))
 
 
 class RandomLayout(Layout):
@@ -166,7 +174,7 @@ def spawn(program):
     wlc.exec(program)
 
 keyboard_shortcuts = [('ctrl', 'Escape', 'quit'),
-                      ('ctrl', 'Return', lambda: spawn('weston-terminal')),
+                      ('ctrl', 'Return', lambda: spawn('xterm')),
                       ]
 
 class State(object):

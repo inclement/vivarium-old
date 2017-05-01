@@ -3,8 +3,15 @@ from pywlc import ffi, lib
 from pywlc import wlc
 
 from pywm.objects import state
+from pywm.logger import logger, info, debug, warning, error
+import logging
+logger.setLevel(logging.DEBUG)
+
+from colorama import Fore, Style
 
 import random
+
+info('{Fore.GREEN}{Style.BRIGHT}Running pywm{Fore.RESET}'.format(Fore=Fore, Style=Style))
 
 def get_topmost(output, offset):
     views, num_views = wlc.output_get_views(output)
