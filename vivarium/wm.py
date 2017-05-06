@@ -20,12 +20,9 @@ def get_topmost(output, offset):
     return 0
 
 def do_layout(output):
-    print('output is', output)
     size = wlc.output_get_virtual_resolution(output)
-    print('size is', size)
     
     views, num_views = wlc.output_get_views(output)
-    print('views, num views', views, num_views)
 
     positioned = 0
     for i in range(num_views):
@@ -35,7 +32,6 @@ def do_layout(output):
     toggle = 0
     y = 0
     n = max((1 + positioned) // 2, 1)
-    print('size is', size)
     w = size.w // 2
     h = size.h // n
     ew = size.w - w * 2
@@ -53,7 +49,6 @@ def do_layout(output):
                 else (w if toggle else w + ew))
             g.size.h = h + eh if j < 2 else h
 
-            print('i is {}, x is {}, y is {}, w is {}, h is {}'.format(i, g.origin.x, g.origin.y, g.size.w, g.size.h))
             wlc.view_set_geometry(views[i], 0, g)
 
             toggle = 1 - toggle
@@ -62,7 +57,6 @@ def do_layout(output):
 
         else:
             size_req = wlc.view_positioner_get_size(views[i])
-            print('size req', size_req)
             if size_req.w <= 0 or size_req.h <= 0:
                 current = wlc.view_get_geometry(views[i])
                 size_req = current.size
@@ -82,14 +76,11 @@ def do_layout(output):
     
 
 def output_resolution(output, from_size, to_size):
-    print('output resolution', output, from_size, to_size)
     state.current_workspace.do_layout()
     
 def view_created(view):
-    print('view_created', view)
 
     global state
-    print('state is', state)
     state.add_window(view)
 
     # wlc.view_set_mask(view, wlc.output_get_mask(wlc.view_get_output(view)))
@@ -101,7 +92,6 @@ def view_created(view):
     return 1
 
 def view_destroyed(view):
-    print('view_destroyed')
 
     # wlc.view_focus(get_topmost(wlc.view_get_output(view), 0))
     state.destroy_view(view)
@@ -109,21 +99,18 @@ def view_destroyed(view):
     # do_layout(wlc.view_get_output(view))
 
 def view_focus(view, focus):
-    print('view_focus')
     wlc.view_set_state(view, lib.WLC_BIT_ACTIVATED, focus)
 
 def view_request_move(view, origin):
-    print('view_request_move')
+    pass
 
 def view_request_resize(view, origin):
-    print('view_request_resize')
+    pass
 
 def view_request_geometry(view, geometry):
-    print('view_request_geometry')
     pass
 
 def keyboard_key(view, time, modifiers, key, key_state):
-    print('keyboard_key', view, time, modifiers, key, state)
 
     return state.keyboard_key(view, time, modifiers, key, key_state)
 
@@ -149,7 +136,6 @@ def keyboard_key(view, time, modifiers, key, key_state):
     return 0
 
 def pointer_button(view, time, modifiers, button, state, position):
-    print('pointer_button', view, time, modifiers, button, state, position)
 
     if state == lib.WLC_BUTTON_STATE_PRESSED:
         wlc.view_focus(view)
@@ -158,7 +144,6 @@ def pointer_button(view, time, modifiers, button, state, position):
 
 
 def pointer_motion(handle, time, position):
-    # print('pointer_motion', handle, timee, position)
 
     state.pointer_motion(handle, time, position)
 
