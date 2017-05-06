@@ -19,8 +19,20 @@ def next_layout():
 def left():
     state = get_state()
     state.left()
+    return 1
 
 def right():
     state = get_state()
-    state.left()
+    state.right()
+    return 1
     
+def up():
+    state = get_state()
+    state.up()
+    return 1
+
+def down():
+    state = get_state()
+    state.down()
+    return 1
+

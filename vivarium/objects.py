@@ -1,6 +1,6 @@
 from __future__ import division
 from pywlc import wlc
-from vivarium.logger import info, debug, warning
+from vivarium.logger import info, debug, warning, error
 from vivarium import functions
 
 views = {}
@@ -49,6 +49,11 @@ class Layout(object):
     def do_layout(self):
         pass
 
+    def left(self):
+        pass
+
+    def right(self):
+        pass
 
 class TwoColumnLayout(Layout):
 
@@ -92,6 +97,16 @@ class TwoColumnLayout(Layout):
                    int(height * i + self.border))
             window.set(size=size,
                        pos=pos)
+
+    def left(self):
+        self.separator_frac -= state.layout_step
+        debug('left: {}.separator_frac = {}'.format(self, self.separator_frac))
+        self.separator_frac = max(0, self.separator_frac)
+
+    def right(self):
+        self.separator_frac += state.layout_step
+        debug('right: {}.separator_frac = {}'.format(self, self.separator_frac))
+        self.separator_frac = min(1, self.separator_frac)
 
 
 class SplittingLayout(Layout):
@@ -268,10 +283,20 @@ class Workspace(object):
                     window.focus()
                     return True
 
+    def left(self):
+        self.current_layout.left()
+        self.do_layout()
+
+    def right(self):
+        self.current_layout.right()
+        self.do_layout()
+
 
 keyboard_shortcuts = [('ctrl', 'Escape', 'quit'),
                       ('ctrl', 'Return', functions.spawn('xterm')),
                       ('ctrl', 'space', functions.next_layout),
+                      ('ctrl', 'j', functions.left),
+                      ('ctrl', 'i', functions.right),
                       ]
 
 class State(object):
@@ -279,6 +304,9 @@ class State(object):
     workspaces = []
 
     keyboard_shortcuts = keyboard_shortcuts
+
+    # Miscellaneous settings options:
+    layout_step = 0.04
 
     def __init__(self):
         self.workspaces = [Workspace(), Workspace()]
@@ -306,11 +334,6 @@ class State(object):
         if not key_state:
             return 0
 
-        if modifiers.modifiers == ['ctrl'] and sym == wlc.keysym('i'):
-            print('view is {}, current mask is {}'.format(
-                view, wlc.view_get_mask(view)))
-            wlc.view_set_mask(view, 1 - wlc.view_get_mask(view))
-
         for shortcut in keyboard_shortcuts:
             modifier, key, func = shortcut
             if modifiers.modifiers == [modifier]:
@@ -327,6 +350,17 @@ class State(object):
 
     def quit(self):
         wlc.terminate()
+
+
+    def left(self):
+        debug('state.left')
+        self.current_workspace.left()
+        return 1
+
+    def right(self):
+        debug('state.right')
+        self.current_workspace.right()
+        return 1
         
 
 state = State()
