@@ -2,8 +2,8 @@ from __future__ import division, print_function
 from pywlc import ffi, lib
 from pywlc import wlc
 
-from pywm.objects import state
-from pywm.logger import logger, info, debug, warning, error
+from vivarium.objects import state
+from vivarium.logger import logger, info, debug, warning, error
 import logging
 logger.setLevel(logging.DEBUG)
 
@@ -11,7 +11,7 @@ from colorama import Fore, Style
 
 import random
 
-info('{Fore.GREEN}{Style.BRIGHT}Running pywm{Fore.RESET}'.format(Fore=Fore, Style=Style))
+info('{Fore.GREEN}{Style.BRIGHT}Running vivarium{Fore.RESET}'.format(Fore=Fore, Style=Style))
 
 def get_topmost(output, offset):
     views, num_views = wlc.output_get_views(output)
@@ -83,7 +83,7 @@ def do_layout(output):
 
 def output_resolution(output, from_size, to_size):
     print('output resolution', output, from_size, to_size)
-    state.current_layout.do_layout()
+    state.current_workspace.do_layout()
     
 def view_created(view):
     print('view_created', view)
@@ -105,7 +105,7 @@ def view_destroyed(view):
 
     # wlc.view_focus(get_topmost(wlc.view_get_output(view), 0))
     state.destroy_view(view)
-    state.current_layout.do_layout()
+    state.current_workspace.do_layout()
     # do_layout(wlc.view_get_output(view))
 
 def view_focus(view, focus):
