@@ -34,6 +34,7 @@ def get_next_workspace_name(identifier, identifiers):
         return identifier
     i = 1
     while True:
+        print(identifiers, str(i), str(i) in identifiers)
         if str(i) not in identifiers:
             return str(i)
         i += 1
@@ -63,7 +64,7 @@ class TwoColumnLayout(Layout):
 
     def do_layout(self, windows):
 
-        debug('TwoColumnLayout do_layout called')
+        debug('TwoColumnLayout.do_layout: {} windows'.format(len(windows)))
 
         width_frac = self.separator_frac if len(windows) > 1 else 1
 
@@ -170,7 +171,6 @@ class Output(WlcHandle):
 class View(WlcHandle):
 
     def __init__(self, *args, **kwargs):
-        print('args are', args, kwargs)
         super(View, self).__init__(*args, **kwargs)
 
         self._size = (800, 600)
@@ -212,7 +212,6 @@ class View(WlcHandle):
             g.origin.y = self.pos[1]
 
 
-        print('Setting geometry to', g)
         wlc.view_set_geometry(self.handle, 0, g)
 
     @property
@@ -241,8 +240,10 @@ class Workspace(object):
     def __init__(self, identifier=None):
         self.identifier = get_next_workspace_name(
             identifier, Workspace._identifiers)
+        Workspace._identifiers.append(self.identifier)
 
         self.windows = []
+        self.focused_window = None
 
     @property
     def current_layout(self):
@@ -259,13 +260,16 @@ class Workspace(object):
         view.bring_to_front()
         view.focus()
         self.windows.append(view)
+        self.focused_window = view
 
         self.do_layout()
-
 
     def remove_window(self, view):
         if view not in self.windows:
             return
+
+        if view is self.focused_window:
+            self.up()
 
         index = self.windows.index(view)
         self.windows.pop(index)
@@ -281,7 +285,14 @@ class Workspace(object):
             if pos[0] < position.x < pos[0] + size[0]:
                 if pos[1] < position.y < pos[1] + size[1]:
                     window.focus()
+                    self.focused_window = window
                     return True
+
+    def focus(self):
+        if not self.windows:
+            return
+        if self.focused_window is not None:
+            self.focused_window.focus()
 
     def left(self):
         self.current_layout.left()
@@ -291,13 +302,30 @@ class Workspace(object):
         self.current_layout.right()
         self.do_layout()
 
+    def up(self):
+        index = self.windows.index(self.focused_window)
+        self.focused_window = self.windows[(index - 1) % len(self.windows)]
+        self.focused_window.focus()
 
-keyboard_shortcuts = [('ctrl', 'Escape', 'quit'),
+    def down(self):
+        index = self.windows.index(self.focused_window)
+        self.focused_window = self.windows[(index + 1) % len(self.windows)]
+        self.focused_window.focus()
+
+
+keyboard_shortcuts = [('ctrl', 'Escape', functions.quit),
                       ('ctrl', 'Return', functions.spawn('xterm')),
                       ('ctrl', 'space', functions.next_layout),
                       ('ctrl', 'j', functions.left),
                       ('ctrl', 'i', functions.right),
+                      ('ctrl', 'u', functions.down),
+                      ('ctrl', 'm', functions.up),
                       ]
+
+for i in range(1, 10):
+    keyboard_shortcuts.append(
+        ('ctrl', str(i), functions.to_workspace(str(i)))
+        )
 
 class State(object):
 
@@ -338,10 +366,8 @@ class State(object):
             modifier, key, func = shortcut
             if modifiers.modifiers == [modifier]:
                 if sym == wlc.keysym(key):
-                    if isinstance(func, str):
-                        return getattr(self, func)()
-                    else:
-                        return func()
+                    func()
+                    return 1
 
         return 0
 
@@ -362,5 +388,26 @@ class State(object):
         self.current_workspace.right()
         return 1
         
+    def up(self):
+        debug('state.up')
+        self.current_workspace.up()
+        return 1
+
+    def down(self):
+        debug('state.down')
+        self.current_workspace.down()
+        return 1
+
+    def to_workspace(self, identifier):
+        debug('state.to_workspace {}: options are {}'.format(
+            identifier, [w.identifier for w in self.workspaces]))
+        matching = [w for w in self.workspaces if w.identifier == identifier]
+        if not matching:
+            error('Could not switch to workspace "{}", it does not '
+                  'exist'.format(identifier))
+        self.current_workspace = matching[0]
+        self.current_workspace.focus()
+        
+
 
 state = State()

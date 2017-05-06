@@ -15,6 +15,7 @@ def spawn(program):
 def next_layout():
     state = get_state()
     state.next_layout()
+    return 1
 
 def left():
     state = get_state()
@@ -36,3 +37,14 @@ def down():
     state.down()
     return 1
 
+def to_workspace(identifier):
+    def func():
+        state = get_state()
+        state.to_workspace(identifier)
+        return 1
+    return func
+
+def quit():
+    state = get_state()
+    state.quit()
+    return 1
