@@ -1,5 +1,7 @@
+from __future__ import division
 from pywlc import wlc
 from vivarium.logger import info, debug, warning
+from vivarium import functions
 
 views = {}
 def get_view(handle):
@@ -42,7 +44,7 @@ class Layout(object):
 
     def __init__(self):
 
-        self.border = 2
+        self.border = 1
 
     def do_layout(self):
         pass
@@ -90,6 +92,48 @@ class TwoColumnLayout(Layout):
                    int(height * i + self.border))
             window.set(size=size,
                        pos=pos)
+
+
+class SplittingLayout(Layout):
+    def do_layout(self, windows):
+
+        window = windows[0]
+        output_size = window.output.virtual_resolution
+        output_size = (output_size.w, output_size.h)
+
+        current_width = output_size[0]
+        current_height = output_size[1]
+        current_x = 0
+        current_y = 0
+        dir = 'horizontal'
+        while windows:
+            window = windows[0]
+            windows = windows[1:]
+
+            if not windows:
+                window.set(size=(current_width - 2*self.border,
+                                 current_height - 2*self.border),
+                           pos=(current_x + self.border,
+                                current_y + self.border))
+                continue
+
+            if dir == 'horizontal':
+                current_width = int(current_width / 2.)
+            else:
+                current_height = int(current_height / 2.)
+
+            window.set(size=(current_width - 2*self.border,
+                             current_height - 2*self.border),
+                       pos=(current_x + self.border,
+                            current_y + self.border))
+
+            if dir == 'horizontal':
+                current_x = current_x + current_width
+                dir = 'vertical'
+            else:
+                current_y = current_y + current_height
+                dir = 'horizontal'
+
 
 
 class RandomLayout(Layout):
@@ -175,7 +219,7 @@ class View(WlcHandle):
 
 class Workspace(object):
 
-    layouts = [TwoColumnLayout(), RandomLayout()]
+    layouts = [TwoColumnLayout(), SplittingLayout()]
 
     _identifiers = []
 
@@ -225,11 +269,9 @@ class Workspace(object):
                     return True
 
 
-def spawn(program):
-    wlc.exec(program)
-
 keyboard_shortcuts = [('ctrl', 'Escape', 'quit'),
-                      ('ctrl', 'Return', lambda: spawn('xterm')),
+                      ('ctrl', 'Return', functions.spawn('xterm')),
+                      ('ctrl', 'space', functions.next_layout),
                       ]
 
 class State(object):
@@ -280,7 +322,8 @@ class State(object):
 
         return 0
 
-                
+    def next_layout(self):
+        self.current_workspace.next_layout()
 
     def quit(self):
         wlc.terminate()

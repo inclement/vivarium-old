@@ -186,11 +186,6 @@ def run():
     init_callbacks()
     init_wlc()
 
-    global state
-    state = State()
-    
-    assert state is not None
-
 
 if __name__ == "__main__":
     run()
