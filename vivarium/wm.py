@@ -74,101 +74,143 @@ def do_layout(output):
 
             wlc.view_set_geometry(views[i], 0, g)
     
-
-def output_resolution(output, from_size, to_size):
-    state.current_workspace.do_layout()
+# Callbacks
 
 def output_created(handle):
-    debug('Output created: {}'.format(handle))
+    warning('output_created: {}. Not handled.'.format(handle))
     from vivarium.view import get_output
     get_output(handle)
     return 1
-    
+
+def output_destroyed(handle):
+    warning('output_destroyed: {}. Not handled.'.format(handle))
+
+def output_focus(handle, focus):
+    warning('output_focus: {}. Not handled.'.format(handle))
+
+def output_resolution(output, from_size, to_size):
+    debug('output_resolution: {} from {} -> {}'.format(output, from_size, to_size))
+    state.current_workspace.do_layout()
+
+def output_render_pre(handle):
+    return
+    warning('output_render_pre: {}. Not handle'.format(handle))
+
+def output_render_post(handle):
+    return
+    warning('output_render_post: {}. Not handle'.format(handle))
+
+def output_context_created(handle):
+    warning('output_context_created: {}. Not handle'.format(handle))
+
+def output_context_destroyed(handle):
+    warning('output_context_destroyed: {}. Not handle'.format(handle))
+
 def view_created(view):
+    debug('view_created: {}'.format(view))
 
     global state
     state.add_window(view)
 
-    # wlc.view_set_mask(view, wlc.output_get_mask(wlc.view_get_output(view)))
-    # wlc.view_bring_to_front(view)
-    # wlc.view_focus(view)
-
-    # do_layout(wlc.view_get_output(view))
-
     return 1
 
 def view_destroyed(view):
+    debug('view_destroyed: {}'.format(view))
 
-    # wlc.view_focus(get_topmost(wlc.view_get_output(view), 0))
     state.destroy_view(view)
     state.current_workspace.do_layout()
-    # do_layout(wlc.view_get_output(view))
 
 def view_focus(view, focus):
+    debug('view_focus: {} {}'.format(view, focus))
     wlc.view_set_state(view, lib.WLC_BIT_ACTIVATED, focus)
 
-def view_request_move(view, origin):
-    pass
-
-def view_request_resize(view, origin):
-    pass
+def view_move_to_output(view, from_output, to_output):
+    warning('view_move_to_output: {} from {} -> {}. Not handled.'.format(
+        view, from_output, to_output))
 
 def view_request_geometry(view, geometry):
-    pass
+    warning('view_request_geometry. {} requests {}. Not handled.'.format(
+        view, geometry))
+
+def view_request_state(view, state, toggle):
+    warning('view_request_state: {} requests {}, toggle {}. Not handled.'.format(
+        view, state, toggle))
+
+def view_request_move(view, origin):
+    warning('view_request_move. Not handled.')
+
+def view_request_resize(view, origin):
+    warning('view_request_resize. Not handled.')
+
+def view_render_pre(view):
+    return
+    warning('view_render_pre. Not handled.')
+
+def view_render_post(view):
+    return
+    warning('view_render_post. Not handled.')
+
+def view_properties_updated(view, mask):
+    warning('view_properties_updated: {} got mask {}. Not handled.'.format(
+        view, mask))
 
 def keyboard_key(view, time, modifiers, key, key_state):
-
+    debug('keyboard_key: view {} at {}, modifiers {}, key {}, key_state {}'.format(
+        view, time, modifiers, key, key_state))
     return state.keyboard_key(view, time, modifiers, key, key_state)
 
-    sym = wlc.keyboard_get_keysym_for_key(key)
-
-    if view:
-        if 'ctrl' in modifiers:
-            if sym == wlc.keysym('q'):
-                if state:
-                    wlc.view_close(view)
-
-    if 'ctrl' in modifiers:
-        if sym == wlc.keysym('Escape'):
-            if state:
-                wlc.terminate()
-            return 1
-
-        if sym == wlc.keysym('Return'):
-            if state:
-                wlc.exec('weston-terminal')
-            return 1
-
-    return 0
-
 def pointer_button(view, time, modifiers, button, state, position):
-
+    debug('pointer_button: view {} at {}, modifiers {}, button {}, state {}, position {}'.format(
+        view, time, modifiers, button, state, position))
     if state == lib.WLC_BUTTON_STATE_PRESSED:
         wlc.view_focus(view)
 
     return 0
 
+def pointer_scroll(view, time, modifiers, axis, amount):
+    warning('pointer_scroll: view {} at {}, modifiers {}, axis {}, amount ({},  {}, {})'.format(
+        view, time, modifiers, axis, amount[0], amount[1], amount[2]))
 
 def pointer_motion(handle, time, position):
-
+    debug('pointer_motion: {} at {} to {}'.format(handle, time, position))
     state.pointer_motion(handle, time, position)
 
     wlc.pointer_set_position(position)
 
     return 0
 
+def compositor_ready():
+    warning('compositor_ready. Not handled.')
+
+def compositor_terminate():
+    warning('compositor_terminate. Not handled.')
+
 def init_callbacks():
-    wlc.set_output_resolution_cb(output_resolution)
     wlc.set_output_created_cb(output_created)
+    wlc.set_output_destroyed_cb(output_destroyed)
+    wlc.set_output_focus_cb(output_focus)
+    wlc.set_output_resolution_cb(output_resolution)
+    wlc.set_output_render_pre_cb(output_render_pre)
+    wlc.set_output_render_post_cb(output_render_post)
+    wlc.set_output_context_created_cb(output_context_created)
+    wlc.set_output_context_destroyed_cb(output_context_destroyed)
     wlc.set_view_created_cb(view_created)
     wlc.set_view_destroyed_cb(view_destroyed)
     wlc.set_view_focus_cb(view_focus)
+    wlc.set_view_move_to_output_cb(view_move_to_output)
+    wlc.set_view_request_geometry_cb(view_request_geometry)
+    wlc.set_view_request_state_cb(view_request_state)
     wlc.set_view_request_move_cb(view_request_move)
     wlc.set_view_request_resize_cb(view_request_resize)
-    wlc.set_view_request_geometry_cb(view_request_geometry)
+    wlc.set_view_render_pre_cb(view_render_pre)
+    wlc.set_view_render_post_cb(view_render_post)
+    wlc.set_view_properties_updated_cb(view_properties_updated)
     wlc.set_keyboard_key_cb(keyboard_key)
     wlc.set_pointer_button_cb(pointer_button)
+    wlc.set_pointer_scroll_cb(pointer_scroll)
     wlc.set_pointer_motion_cb(pointer_motion)
+    wlc.set_compositor_ready_cb(compositor_ready)
+    wlc.set_compositor_terminate_cb(compositor_terminate)
 
 def init_wlc():
     lib.wlc_init()
