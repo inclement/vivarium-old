@@ -19,7 +19,7 @@ def get_output(handle):
 
 handles = {}
 def get_handle(handle):
-    return handles[handle]
+    return handles[handle] if handle in handles else None
 
 class WlcHandle(object):
     def __init__(self, handle=None):

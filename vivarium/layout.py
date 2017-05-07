@@ -61,11 +61,13 @@ class TwoColumnLayout(Layout):
                        pos=pos)
 
     def left(self):
+        from vivarium.objects import state
         self.separator_frac -= state.layout_step
         debug('left: {}.separator_frac = {}'.format(self, self.separator_frac))
         self.separator_frac = max(0, self.separator_frac)
 
     def right(self):
+        from vivarium.objects import state
         self.separator_frac += state.layout_step
         debug('right: {}.separator_frac = {}'.format(self, self.separator_frac))
         self.separator_frac = min(1, self.separator_frac)
