@@ -15,6 +15,7 @@ keyboard_shortcuts = [('ctrl', 'Escape', functions.quit),
                       ('ctrl', 'l', functions.right),
                       ('ctrl', 'j', functions.down),
                       ('ctrl', 'k', functions.up),
+                      ('ctrl', 'c', functions.close_window),
                       ]
 
 for i in range(1, 10):
@@ -105,6 +106,11 @@ class State(object):
                   'exist'.format(identifier))
         self.current_workspace = matching[0]
         self.current_workspace.focus()
+
+    def close_window(self):
+        if not self.current_workspace.focused_window:
+            return
+        wlc.view_close(self.current_workspace.focused_window.handle)
         
 
 import os

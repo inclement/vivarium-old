@@ -48,3 +48,7 @@ def quit():
     state = get_state()
     state.quit()
     return 1
+
+def close_window():
+    state = get_state()
+    state.close_window()
