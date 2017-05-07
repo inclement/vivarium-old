@@ -77,6 +77,12 @@ def do_layout(output):
 
 def output_resolution(output, from_size, to_size):
     state.current_workspace.do_layout()
+
+def output_created(handle):
+    debug('Output created: {}'.format(handle))
+    from vivarium.view import get_output
+    get_output(handle)
+    return 1
     
 def view_created(view):
 
@@ -153,6 +159,7 @@ def pointer_motion(handle, time, position):
 
 def init_callbacks():
     wlc.set_output_resolution_cb(output_resolution)
+    wlc.set_output_created_cb(output_created)
     wlc.set_view_created_cb(view_created)
     wlc.set_view_destroyed_cb(view_destroyed)
     wlc.set_view_focus_cb(view_focus)
